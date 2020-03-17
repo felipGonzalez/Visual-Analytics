@@ -24,15 +24,34 @@ db.getCollection('twitter_search').aggregate([
 
 ])
 
-// cantiad de seguidores https://bl.ocks.org/mbostock/32bd93b1cc0fbccc9bf9
+// tweets por mes y persona   https://www.chartjs.org/samples/latest/charts/area/line-boundaries.html
+
+db.getCollection('twitter_search').aggregate( [ 
+        {$project: { nombre: "$user.name" , date: { $dateFromString: { dateString: "$created_at"} } } },
+        {$group : { _id : { month : {$month : "$date"}, nombre: "$nombre" }, "mencion" : { $sum : 1} } }
+        ] )
 
 
+// hashtag más usados
 
-// tweets por año   https://www.chartjs.org/samples/latest/charts/area/line-boundaries.html
+db.getCollection('twitter_search').aggregate( [ 
+        { $unwind : { path: "$entities.hashtags" } }, 
+        { $group : {_id : "$entities.hashtags.text", "htmas" : { $sum : 1} } },
+        { $sort : { htmas : -1 } }, 
+        { $limit : 25 }
+        ] )
 
-// tweets  por cidudad https://bl.ocks.org/mbostock/4342045
 
 // Usuarios mas mencionados https://observablehq.com/@d3/bubble-chart
+
+db.getCollection('twitter_search').aggregate( [ 
+        { $unwind : { path: "$entities.user_mentions" } }, 
+        { $group : {_id : "$entities.user_mentions.name", "mencion" : { $sum : 1} } },
+        { $sort : { mencion : -1 } }, 
+        { $limit : 20 }
+        ] )
+
+
 
 
 
